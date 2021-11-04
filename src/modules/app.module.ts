@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import InternalController from '../controllers/internal.controller';
 import AppController from '../controllers/app.controller';
 import Game from '../entities/game.entity';
@@ -23,6 +24,7 @@ import GamesService from '../services/games.service';
       inject: [ ConfigService ]
     }),
     TypeOrmModule.forFeature([ Game, Publisher, Discount ]),
+    ScheduleModule.forRoot(),
 
     // App modules
     GamesModule

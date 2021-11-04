@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Connection, EntityNotFoundError, LessThan, Raw, Repository } from 'typeorm';
+import { Connection, Repository } from 'typeorm';
 import { DateTime } from 'luxon';
 import Game from '../entities/game.entity';
 import CreateGameDto from '../dto/games/create-game.dto';
 import UpdateGameDto from '../dto/games/update-game.dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export default class GamesService {
@@ -46,6 +47,7 @@ export default class GamesService {
     });
   }
 
+  @Cron('0 0 * * *')
   async removeOlderGames () {
     const date = DateTime.now().minus({ months: 18 }).toISODate();
     const operation = this.gameRepository
@@ -53,10 +55,10 @@ export default class GamesService {
       .delete()
       .where('releaseDate < :date', { date });
 
-    console.log('removeOlderGames', operation.getSql(), operation.getParameters());
     return operation.execute().catch(console.error);
   }
 
+  @Cron('0 0 * * *')
   async applyDiscountByMonth (discountId: number, start: number, end: number) {
     const initial = DateTime.now().minus({ months: start }).toISODate();
     const final = DateTime.now().minus({ months: end }).toISODate();
@@ -69,7 +71,7 @@ export default class GamesService {
           AND NOT EXISTS(SELECT FROM game_discount WHERE "gameId" = g.id AND "discountId" = $1)
     `, [ discountId, initial, final ]).catch(console.error)
 
-    this.calculateNewPricesByDiscount()
+    await this.calculateNewPricesByDiscount()
   }
 
   async calculateNewPricesByDiscount () {
