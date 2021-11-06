@@ -59,7 +59,7 @@ export default class GamesService {
   }
 
   @Cron('0 0 * * *')
-  async applyDiscountByMonth (discountId: number, start: number, end: number) {
+  async applyDiscountByMonth (discountId: number = 1, start: number = 18, end: number = 12) {
     const initial = DateTime.now().minus({ months: start }).toISODate();
     const final = DateTime.now().minus({ months: end }).toISODate();
 

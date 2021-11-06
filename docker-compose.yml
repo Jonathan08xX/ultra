@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    container_name: postgres12
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - 'pgdata:/var/lib/postgresql/data'
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: 'ultrausername'
+      POSTGRES_PASSWORD: 'ultrapassword'
+      POSTGRES_DB: 'ultra'
+      PG_DATA: '/var/lib/postgresql/data'
+      POSTGRES_HOST_AUTH_METHOD: trust
+
+  api:
+    container_name: ultra_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+    depends_on:
+      - postgres
+    links:
+      - postgres:alpine
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start:prod
+    environment:
+      DATABASE_TYPE: postgres
+      DATABASE_URL: 'postgresql://ultrausername:ultrapassword@postgres/ultra'
+
+volumes:
+  pgdata:
